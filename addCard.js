@@ -20,12 +20,8 @@ module.exports.add = async (event) => {
 
 
   if (secureSigner.validateFormRedirect(event.queryStringParameters)) {
-    console.log("start tokenization");
     return paymentApi.tokenization(event.queryStringParameters['sph-tokenization-id'])
       .then(tokenizationResponse => {
-
-        console.log("tokenization successful");
-        console.log(tokenizationResponse);
         const params = {
           TableName: process.env.CARDS_TABLE,
           Item: {
@@ -35,23 +31,16 @@ module.exports.add = async (event) => {
           }
         };
 
-        console.log("add to database");
-        console.log(params);
-
         return DynamoDb.put(params).promise();
       })
       .then(() => {
-        console.log("success");
         return Promise.resolve({statusCode: 200, body: ''});
       })
       .catch((err) => {
-        console.log("error");
-        console.log(err);
         return Promise.reject(err);
       });
 
   } else {
-    console.log("validation failed");
     return Promise.reject({statusCode: 400, body: 'Signature validation failed'});
   }
 

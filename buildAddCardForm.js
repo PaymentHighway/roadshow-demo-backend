@@ -3,7 +3,7 @@
 const paymentHighway = require('paymenthighway');
 const FormBuilder = paymentHighway.FormBuilder;
 
-module.exports.add = async (event) => {
+module.exports.build = async (event) => {
 
   const user = event.queryStringParameters.user;
   const webhookSuccessUrl = (process.env.URL + 'card/add?user=' + user).trim();

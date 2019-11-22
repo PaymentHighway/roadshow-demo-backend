@@ -21,11 +21,9 @@ module.exports.list = async (event) => {
 
   return DynamoDb.query(params).promise()
     .then(data => {
-      console.log(data);
       return {statusCode: 200, body: JSON.stringify(data.Items)};
     })
     .catch(err => {
-      console.log(err);
       return {statusCode: 400, body: err};
     });
 };

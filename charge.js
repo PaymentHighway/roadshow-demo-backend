@@ -19,29 +19,21 @@ const DynamoDb = new AWS.DynamoDB.DocumentClient({apiVersion: '2012-08-10'});
 module.exports.charge = async (event) => {
 
   const user = event.queryStringParameters.user;
-  const token = event.queryStringParameters.token;
-  const amount = event.queryStringParameters.amount;
-  const order = event.queryStringParameters.order;
   const currency = 'EUR';
-
-  const successUrl = event.queryStringParameters.success;
-  const failureUrl = event.queryStringParameters.failure;
-  const cancelUrl = event.queryStringParameters.cancel;
 
   const webhookSuccessUrl = (process.env.URL + 'charge/webhook?user=' + user).trim();
   const webhookFailureUrl = (process.env.URL + 'charge/webhook?user=' + user).trim();
   const webhookCancelUrl = (process.env.URL + 'charge/webhook?user=' + user).trim();
 
-  console.log("token: " + token);
 
   return paymentApi.initTransaction()
     .then(transactionResponse => {
       const transactionId = transactionResponse.id;
 
       const returnUrls = paymentHighway.ReturnUrls.Builder(
-        successUrl,
-        cancelUrl,
-        failureUrl
+        event.queryStringParameters.successUrl,
+        event.queryStringParameters.cancelUrl,
+        event.queryStringParameters.failureUrl
       ).setWebhookSuccessUrl(webhookSuccessUrl)
         .setWebhookFailureUrl(webhookFailureUrl)
         .setWebhookCancelUrl(webhookCancelUrl)
@@ -50,19 +42,17 @@ module.exports.charge = async (event) => {
       const strongCustomerAuthentication = paymentHighway.StrongCustomerAuthentication.Builder(returnUrls).build();
 
       const chargeCitRequest = paymentHighway.ChargeCitRequest.Builder(
-        amount,
+        event.queryStringParameters.amount,
         currency,
-        order,
+        event.queryStringParameters.order,
         strongCustomerAuthentication
       )
-        .setToken(new paymentHighway.Token(token))
+        .setToken(new paymentHighway.Token(event.queryStringParameters.token))
         .build();
 
-      console.log(JSON.stringify(chargeCitRequest));
 
       return paymentApi.chargeCustomerInitiatedTransaction(transactionId, chargeCitRequest)
         .then(debitResponse => {
-          console.log(JSON.stringify(debitResponse));
           if (debitResponse.result.code === 400) {
             return {
               statusCode: 200,
@@ -85,7 +75,7 @@ module.exports.charge = async (event) => {
     });
 };
 
-module.exports.webhook = async (event) => {
+module.exports.commitScaPayment = async (event) => {
   if (secureSigner.validateFormRedirect(event.queryStringParameters)) {
     // Match the transaction by order id and handle user authentication
     // This is just a dummy sample
@@ -122,7 +112,6 @@ function commitPayment(transactionId, amount, currency, user) {
           date: moment().toISOString(),
         }
       };
-      console.log(params);
 
       return DynamoDb.put(params).promise();
     })

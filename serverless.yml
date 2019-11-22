@@ -51,8 +51,8 @@ functions:
           path: card/add
           method: get
           cors: true
-  addCardForm:
-    handler: addCardForm.add
+  buildAddCardForm:
+    handler: buildAddCardForm.build
     events:
       - http:
           path: card/add/form
@@ -72,8 +72,8 @@ functions:
           path: transactions
           method: get
           cors: true
-  captureScaPayment:
-    handler: charge.webhook
+  commitScaPayment:
+    handler: charge.commitScaPayment
     events:
       - http:
           path: charge/webhook
