@@ -4,7 +4,7 @@
   "description": "",
   "main": "list.js",
   "dependencies": {
-    "aws-sdk": "^2.486.0",
+    "aws-sdk": "^2.814.0",
     "moment": "^2.24.0",
     "paymenthighway": "^2.8.1",
     "uuid": "^3.3.2"
